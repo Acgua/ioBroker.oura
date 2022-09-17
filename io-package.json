@@ -1,0 +1,76 @@
+{
+    "common": {
+        "name": "oura",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "title": "Oura Ring",
+        "titleLang": {
+            "en": "Oura Ring",
+            "de": "Oura-Ring",
+            "ru": "Ура Кольцо",
+            "pt": "Anel da Oura",
+            "nl": "Oura-ring",
+            "fr": "Bague Oura",
+            "it": "Nostra Anello",
+            "es": "Anillo Oura",
+            "pl": "Pierścień Oury",
+            "zh-cn": "大浦戒指"
+        },
+        "desc": {
+            "en": "Oura Ring Integration",
+            "de": "Oura-Ring Integration",
+            "ru": "Oura Наша интеграция кольца",
+            "pt": "Integração do anel Oura",
+            "nl": "Oura Ring Integratie",
+            "fr": "Intégration de Oura Ring",
+            "it": "Integrazione di Oura Ring",
+            "es": "Oura Ring Integration",
+            "pl": "Integracja Oura pierścienia",
+            "zh-cn": "我们的一体化"
+        },
+        "authors": ["Acgua <no@mail.com>"],
+        "keywords": ["oura", "ring", "health", "sleep"],
+        "license": "Apache-2.0",
+        "platform": "Javascript/Node.js",
+        "main": "build/main.js",
+        "icon": "oura.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/Acgua/ioBroker.oura/main/admin/oura.png",
+        "readme": "https://github.com/Acgua/ioBroker.oura/blob/main/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "health",
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "materialize": true,
+        "dependencies": [
+            {
+                "js-controller": ">=2.0.0"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=5.1.28"
+            }
+        ]
+    },
+    "native": {
+        "token": ""
+    },
+    "objects": [],
+    "instanceObjects": []
+}
