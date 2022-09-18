@@ -40,8 +40,15 @@
             "pl": "Integracja Oura pierścienia",
             "zh-cn": "我们的一体化"
         },
-        "authors": ["Acgua <no@mail.com>"],
-        "keywords": ["oura", "ring", "health", "sleep"],
+        "authors": [
+            "Acgua <no@mail.com>"
+        ],
+        "keywords": [
+            "oura",
+            "ring",
+            "health",
+            "sleep"
+        ],
         "license": "Apache-2.0",
         "platform": "Javascript/Node.js",
         "main": "build/main.js",

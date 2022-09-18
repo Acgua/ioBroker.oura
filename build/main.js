@@ -29,6 +29,15 @@ module.exports = __toCommonJS(main_exports);
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_axios = __toESM(require("axios"));
 var import_methods = require("./lib/methods");
+/**
+ * -------------------------------------------------------------------
+ *  ioBroker Oura Adapter
+ * @github  https://github.com/Acgua/ioBroker.oura
+ * @author  Acgua <https://github.com/Acgua/ioBroker.oura>
+ * @created Adapter Creator v2.1.1
+ * @license Apache License 2.0
+ * -------------------------------------------------------------------
+ */
 class Oura extends utils.Adapter {
   constructor(options = {}) {
     super({ ...options, name: "oura" });
@@ -48,6 +57,12 @@ class Oura extends utils.Adapter {
         throw `Your Oura cloud token in your adapter configuration is not valid! [${this.config.token}]`;
       this.config.token = tkn;
       await this.asyncUpdateAll();
+      timerId = setTimeout(function tick() {
+        counter++;
+        doStuff();
+        if (counter <= 5)
+          timerId = setTimeout(tick, 2e3);
+      }, 2e3);
       this.intervalCloudupdate = setInterval(async () => {
         this.log.info("Scheduled update of cloud information.");
         await this.asyncUpdateAll();
@@ -73,34 +88,35 @@ class Oura extends utils.Adapter {
         await this.setObjectNotExistsAsync(what, { type: "device", common: { name: what }, native: {} });
         for (const cloudDay of cloudAllDays) {
           if (!cloudDay.timestamp) {
-            this.log.warn(`'${what}' Cloud data retrieval: No timestamp in object`);
+            this.log.debug(`'${what}' Cloud data retrieval: No timestamp in object, so we disregard`);
             continue;
           }
-          const isoToday = this.getIsoDate(new Date(cloudDay.timestamp));
-          if (!isoToday) {
-            this.log.warn(`'${what}' Cloud data retrieval: No valid timestamp: [${cloudDay.timestamp}]`);
+          const dayPart = this.getWordForIsoDate(new Date(cloudDay.timestamp));
+          if (!dayPart) {
+            this.log.warn(`'${what}' Cloud data retrieval: No valid timestamp or other issue with timestamp: [${cloudDay.timestamp}]`);
             continue;
           }
-          await this.setObjectNotExistsAsync(`${what}.${isoToday}`, { type: "channel", common: { name: isoToday + " - " + what }, native: {} });
-          await this.setObjectNotExistsAsync(`${what}.${isoToday}.json`, { type: "state", common: { name: "JSON", type: "string", role: "json", read: true, write: false }, native: {} });
-          await this.setStateAsync(`${what}.${isoToday}.json`, { val: JSON.stringify(cloudDay), ack: true });
+          await this.setObjectNotExistsAsync(`${what}.${dayPart}`, { type: "channel", common: { name: dayPart + " - " + what }, native: {} });
+          await this.setObjectNotExistsAsync(`${what}.${dayPart}.json`, { type: "state", common: { name: "JSON", type: "string", role: "json", read: true, write: false }, native: {} });
+          await this.setStateChangedAsync(`${what}.${dayPart}.json`, { val: JSON.stringify(cloudDay), ack: true });
           for (const prop in cloudDay) {
             if (prop === "timestamp") {
-              await this.setObjectNotExistsAsync(`${what}.${isoToday}.timestamp`, { type: "state", common: { name: "Timestamp", type: "number", role: "date", read: true, write: false }, native: {} });
-              await this.setStateAsync(`${what}.${isoToday}.timestamp`, { val: new Date(cloudDay.timestamp).getTime(), ack: true });
+              await this.setObjectNotExistsAsync(`${what}.${dayPart}.timestamp`, { type: "state", common: { name: "Timestamp", type: "number", role: "date", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${what}.${dayPart}.timestamp`, { val: new Date(cloudDay.timestamp).getTime(), ack: true });
             } else if (prop === "contributors") {
               for (const k in cloudDay.contributors) {
-                await this.setObjectNotExistsAsync(`${what}.${isoToday}.contributors.${k}`, { type: "state", common: { name: k, type: "number", role: "info", read: true, write: false }, native: {} });
-                await this.setStateAsync(`${what}.${isoToday}.contributors.${k}`, { val: cloudDay.contributors[k], ack: true });
+                await this.setObjectNotExistsAsync(`${what}.${dayPart}.contributors.${k}`, { type: "state", common: { name: k, type: "number", role: "info", read: true, write: false }, native: {} });
+                await this.setStateChangedAsync(`${what}.${dayPart}.contributors.${k}`, { val: cloudDay.contributors[k], ack: true });
               }
             } else if (typeof cloudDay[prop] === "number") {
-              await this.setObjectNotExistsAsync(`${what}.${isoToday}.${prop}`, { type: "state", common: { name: prop, type: "number", role: "info", read: true, write: false }, native: {} });
-              await this.setStateAsync(`${what}.${isoToday}.${prop}`, { val: cloudDay[prop], ack: true });
+              await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "number", role: "info", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
             } else if (typeof cloudDay[prop] === "string") {
-              await this.setObjectNotExistsAsync(`${what}.${isoToday}.${prop}`, { type: "state", common: { name: prop, type: "string", role: "info", read: true, write: false }, native: {} });
-              await this.setStateAsync(`${what}.${isoToday}.${prop}`, { val: cloudDay[prop], ack: true });
+              await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "string", role: "info", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
+            } else if (typeof cloudDay[prop] === "object") {
             } else {
-              this.log.error(`${what}: property '${prop}' is unknown! - value: [${cloudDay[prop]}], type: [${typeof cloudDay[prop]}]`);
+              this.log.error(`${what}: property '${prop}' is unknown! - value: [${cloudDay[prop]}], type: ${typeof cloudDay[prop]}`);
             }
           }
         }
@@ -108,7 +124,7 @@ class Oura extends utils.Adapter {
       if (gotData.length > 0)
         this.log.info(`Following data received from Oura cloud: ${gotData.join(", ")}`);
       if (noData.length > 0)
-        this.log.warn(`Could not get following data from Oura cloud: ${noData.join(", ")}`);
+        this.log.debug(`No Oura cloud data available for: ${noData.join(", ")}`);
     } catch (e) {
       this.log.error(this.err2Str(e));
     }
@@ -130,6 +146,8 @@ class Oura extends utils.Adapter {
           timeout
         };
         const response = await import_axios.default.get(url, config);
+        this.log.debug(`Response Status: ${response.status} - ${response.statusText}`);
+        this.log.debug(`Response Config: ${JSON.stringify(response.config)}`);
         if (!response.data || !response.data.data || !response.data.data[0]) {
           return false;
         }
@@ -170,6 +188,28 @@ class Oura extends utils.Adapter {
           }
         }
         return false;
+      }
+    } catch (e) {
+      this.log.error(this.err2Str(e));
+      return false;
+    }
+  }
+  getWordForIsoDate(date) {
+    try {
+      const dateTs = date.getTime();
+      date.setHours(0, 0, 0, 0);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const nowTs = now.getTime();
+      const diffDays = Math.ceil((nowTs - dateTs) / 864e5);
+      if (diffDays < 0) {
+        throw `Negative date difference for given date, which is not supported.`;
+      } else if (diffDays === 0) {
+        return "00-today";
+      } else if (diffDays === 1) {
+        return "01-yesterday";
+      } else {
+        return String(diffDays).padStart(2, "0") + "-days-ago";
       }
     } catch (e) {
       this.log.error(this.err2Str(e));

@@ -26,9 +26,16 @@ Oura provides an [API](https://cloud.ouraring.com/v2/docs) to access to all the 
 
 ## Changelog
 
-### 0.0.1
+<!--
+    Placeholder for the next version (at the beginning of the line):
+    ## **WORK IN PROGRESS**
+-->
 
--   (Acgua) **WORK IN PROGRESS**
+### **WORK IN PROGRESS**
+-   Some changes
+
+#### 0.0.1
+-   (Acgua) Initial release
 
 ## License
 
