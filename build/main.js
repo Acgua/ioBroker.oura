@@ -120,6 +120,9 @@ class Oura extends utils.Adapter {
             } else if (typeof cloudDay[prop] === "string") {
               await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "string", role: "info", read: true, write: false }, native: {} });
               await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
+            } else if (typeof cloudDay[prop] === "boolean") {
+              await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "boolean", role: "info", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
             } else if (typeof cloudDay[prop] === "object") {
             } else {
               this.log.error(`${what}: property '${prop}' is unknown! - value: [${cloudDay[prop]}], type: ${typeof cloudDay[prop]}`);
