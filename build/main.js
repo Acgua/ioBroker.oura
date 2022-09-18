@@ -56,6 +56,8 @@ class Oura extends utils.Adapter {
       if (tkn.length !== 32)
         throw `Your Oura cloud token in your adapter configuration is not valid! [${this.config.token}]`;
       this.config.token = tkn;
+      await this.setObjectNotExistsAsync("info", { type: "channel", common: { name: "Information" }, native: {} });
+      await this.setObjectNotExistsAsync("info.lastCloudUpdate", { type: "state", common: { name: "Last Cloud update", type: "number", role: "date", read: true, write: false, def: 0 }, native: {} });
       await this.asyncUpdateAll();
       this.intervalCloudupdate = setInterval(async () => {
         this.log.info("Scheduled update of cloud information.");
@@ -67,6 +69,7 @@ class Oura extends utils.Adapter {
   }
   async asyncUpdateAll() {
     try {
+      await this.setStateAsync("info.lastCloudUpdate", { val: Date.now(), ack: true });
       const ouraTypes = ["daily_activity", "daily_readiness", "daily_sleep", "heartrate", "session", "sleep", "tag", "workout"];
       const startDate = new Date(Date.now() - 10 * 864e5);
       const endDate = new Date(Date.now() + 864e5);
@@ -81,11 +84,16 @@ class Oura extends utils.Adapter {
         gotData.push(what);
         await this.setObjectNotExistsAsync(what, { type: "device", common: { name: what }, native: {} });
         for (const cloudDay of cloudAllDays) {
-          if (!cloudDay.timestamp) {
-            this.log.debug(`'${what}' Cloud data retrieval: No timestamp in object, so we disregard`);
+          let day;
+          if (cloudDay.timestamp) {
+            day = new Date(cloudDay.timestamp);
+          } else if (cloudDay.day && typeof cloudDay.day === "string") {
+            day = new Date(cloudDay.day);
+          } else {
+            this.log.warn(`'${what}' Cloud data retrieval: No date in object, so we disregard`);
             continue;
           }
-          const dayPart = this.getWordForIsoDate(new Date(cloudDay.timestamp));
+          const dayPart = this.getWordForIsoDate(day);
           if (!dayPart) {
             this.log.warn(`'${what}' Cloud data retrieval: No valid timestamp or other issue with timestamp: [${cloudDay.timestamp}]`);
             continue;
