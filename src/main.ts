@@ -49,6 +49,12 @@ export class Oura extends utils.Adapter {
             if (tkn.length !== 32) throw `Your Oura cloud token in your adapter configuration is not valid! [${this.config.token}]`;
             this.config.token = tkn;
 
+            // Verify Oura Cloud update interval
+            if (!this.config.updateInterval || this.config.updateInterval < 15) {
+                this.log.warn(`The Cloud update interval '${String(this.config.updateInterval)}' in your adapter configuration is not valid, so default of 60 minutes is used.`);
+                this.config.updateInterval = 60;
+            }
+
             // Create info objects
             await this.setObjectNotExistsAsync('info', { type: 'channel', common: { name: 'Information' }, native: {} });
             await this.setObjectNotExistsAsync('info.lastCloudUpdate', { type: 'state', common: { name: 'Last Cloud update', type: 'number', role: 'date', read: true, write: false, def: 0 }, native: {} });
@@ -58,9 +64,9 @@ export class Oura extends utils.Adapter {
 
             // Update periodically
             this.intervalCloudupdate = setInterval(async () => {
-                this.log.info('Scheduled update of cloud information.');
+                this.log.info(`Scheduled update of cloud information per interval of ${this.config.updateInterval} minutes.`);
                 await this.asyncUpdateAll();
-            }, 1000 * 60 * 60); // every hour
+            }, 1000 * 60 * this.config.updateInterval); // typically every hour (this.config.updateInterval default is 60 minutes)
         } catch (e) {
             this.log.error(this.err2Str(e));
         }

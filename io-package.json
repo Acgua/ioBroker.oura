@@ -70,12 +70,13 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=5.1.28"
+                "admin": ">=5.0.0"
             }
         ]
     },
     "native": {
-        "token": ""
+        "token": "",
+        "updateInterval": 60
     },
     "objects": [],
     "instanceObjects": []

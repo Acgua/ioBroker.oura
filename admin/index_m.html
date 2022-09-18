@@ -60,18 +60,19 @@
     <body>
         <div class="m adapter-container">
             <!-- Header Logo and Buttons -->
-            <div class="row" style="margin-top: 5px; margin-bottom: 1px; background-color:#2F4A73" >
-                <div class="col s6" >
-                    <img class="logo" style="width: 155px" src="images/oura-logo-svg.svg" >
+            <div class="row" style="margin-top: 5px; margin-bottom: 1px; background-color: #2f4a73">
+                <div class="col s6">
+                    <img class="logo" style="width: 155px" src="images/oura-logo-svg.svg" />
                 </div>
             </div>
 
-            <div style="margin-top:50px"></div>
+            <div style="margin-top: 50px"></div>
 
             <!-- Content -->
             <div style="margin: 10px">
+                <!---------------- Token ---------------->
                 <div class="row">
-                    <p class="translate title" style="font-weight: bold; background-color: #2F4A73;">Oura Cloud Personal Access Token</p>
+                    <p class="translate title" style="font-weight: bold; background-color: #2f4a73">Oura Cloud Personal Access Token</p>
                     <div class="col s4 input-field">
                         <input type="text" class="value" id="token" />
                         <label for="token" class="translate">Token</label>
@@ -81,7 +82,19 @@
                     <p style="margin-left: 10px">You can create an access token at <a target="_blank" href="https://cloud.ouraring.com/personal-access-tokens">https://cloud.ouraring.com/personal-access-tokens</a></p>
                     <p style="margin-left: 10px">Visit <a target="_blank" href="https://github.com/Acgua/ioBroker.oura/blob/main/README.md">Github - Acgua/ioBroker.oura</a> for further details.</p>
                 </div>
-            </div> <!-- Content -->
+                <!---------------- Cloud Update Interval ---------------->
+                <div class="row">
+                    <p class="translate title" style="font-weight: bold; background-color: #2f4a73">Cloud Update Interval</p>
+                    <div class="col s4 input-field">
+                        <input type="number" min="15" class="value" id="updateInterval" />
+                        <label for="updateInterval" class="translate">Update interval in minutes</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <p style="margin-left: 10px">Please note that at least 15 minutes are required. Default: 60 minutes.</p>
+                </div>
+            </div>
+            <!-- Content -->
         </div>
     </body>
 </html>
