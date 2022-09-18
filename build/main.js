@@ -57,12 +57,6 @@ class Oura extends utils.Adapter {
         throw `Your Oura cloud token in your adapter configuration is not valid! [${this.config.token}]`;
       this.config.token = tkn;
       await this.asyncUpdateAll();
-      timerId = setTimeout(function tick() {
-        counter++;
-        doStuff();
-        if (counter <= 5)
-          timerId = setTimeout(tick, 2e3);
-      }, 2e3);
       this.intervalCloudupdate = setInterval(async () => {
         this.log.info("Scheduled update of cloud information.");
         await this.asyncUpdateAll();
