@@ -55,6 +55,12 @@ export class Oura extends utils.Adapter {
                 this.config.updateInterval = 60;
             }
 
+            // Verify axios get request timeout
+            if (!this.config.cloudTimeout || this.config.cloudTimeout < 0 || this.config.cloudTimeout > 100000) {
+                this.log.warn(`The Cloud timeout '${String(this.config.cloudTimeout)}' in your adapter configuration is not valid, so default of 5000 ms is used.`);
+                this.config.cloudTimeout = 5000;
+            }
+
             // Create info objects
             await this.setObjectNotExistsAsync('info', { type: 'channel', common: { name: 'Information' }, native: {} });
             await this.setObjectNotExistsAsync('info.lastCloudUpdate', { type: 'state', common: { name: 'Last Cloud update', type: 'number', role: 'date', read: true, write: false, def: 0 }, native: {} });
@@ -73,7 +79,7 @@ export class Oura extends utils.Adapter {
     }
 
     /**
-     * TODO: TEST
+     * Update
      */
     private async asyncUpdateAll(): Promise<void> {
         try {
@@ -160,7 +166,6 @@ export class Oura extends utils.Adapter {
             if (!sDate || !eDate) throw `Could not get cloud data, wrong date(s) provided`;
             const url = `https://api.ouraring.com/v2/usercollection/${what}?start_date=${sDate}&end_date=${eDate}`;
             this.log.debug('Final URL: ' + url);
-            const timeout = 3000;
 
             /**
              * Axios
@@ -170,7 +175,7 @@ export class Oura extends utils.Adapter {
                 const config = {
                     method: 'get',
                     headers: { Authorization: 'Bearer ' + this.config.token },
-                    timeout: timeout,
+                    timeout: this.config.cloudTimeout,
                 };
                 const response = await axios.get(url, config);
                 this.log.debug(`Response Status: ${response.status} - ${response.statusText}`);
@@ -179,17 +184,11 @@ export class Oura extends utils.Adapter {
                     // this.log.info('::::: EMPTY RESPONSE ::::::');
                     return false;
                 }
-                /*
-                for (const elem of response.data.data) {
-                    delete response.data.data[elem].class_5_min;
-                    delete response.data.data[elem].data.met;
-                }
-                */
                 return response.data.data;
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     if (!err?.response) {
-                        this.log.error(`[Oura Cloud] Login Failed - No Server Response. Timeout: ${timeout} ms`);
+                        this.log.error(`[Oura Cloud] Login Failed - No Server Response. Timeout: ${this.config.cloudTimeout} ms`);
                     } else if (err.response?.status === 400) {
                         this.log.error('[Oura Cloud] Login Failed - Error 400 - ' + err.response?.statusText);
                     } else if (err.response?.status === 401) {
@@ -260,10 +259,6 @@ export class Oura extends utils.Adapter {
     private onUnload(callback: () => void): void {
         try {
             // Here you must clear all timeouts or intervals that may still be active
-            // clearTimeout(timeout1);
-            // clearTimeout(timeout2);
-            // ...
-            // clearInterval(interval1);
             clearInterval(this.intervalCloudupdate);
 
             callback();

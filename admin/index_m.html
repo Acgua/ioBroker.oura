@@ -70,28 +70,28 @@
 
             <!-- Content -->
             <div style="margin: 10px">
-                <!---------------- Token ---------------->
+                <!---------------- General Settings ---------------->
                 <div class="row">
-                    <p class="translate title" style="font-weight: bold; background-color: #2f4a73">Oura Cloud Personal Access Token</p>
+                    <p class="translate title">General Settings</p>
                     <div class="col s4 input-field">
                         <input type="text" class="value" id="token" />
-                        <label for="token" class="translate">Token</label>
+                        <label for="token" class="translate">Oura Cloud Personal Access Token</label>
+                        <span class="translate">Please create an access token at</span> <a target="_blank" href="https://cloud.ouraring.com/personal-access-tokens">cloud.ouraring.com</a>.
                     </div>
-                </div>
-                <div class="row">
-                    <p style="margin-left: 10px">You can create an access token at <a target="_blank" href="https://cloud.ouraring.com/personal-access-tokens">https://cloud.ouraring.com/personal-access-tokens</a></p>
-                    <p style="margin-left: 10px">Visit <a target="_blank" href="https://github.com/Acgua/ioBroker.oura/blob/main/README.md">Github - Acgua/ioBroker.oura</a> for further details.</p>
-                </div>
-                <!---------------- Cloud Update Interval ---------------->
-                <div class="row">
-                    <p class="translate title" style="font-weight: bold; background-color: #2f4a73">Cloud Update Interval</p>
                     <div class="col s4 input-field">
                         <input type="number" min="15" class="value" id="updateInterval" />
-                        <label for="updateInterval" class="translate">Update interval in minutes</label>
+                        <label for="updateInterval" class="translate">Cloud update interval in minutes</label>
+                        <span class="translate">At least 15 minutes required. Default: 60</span>
                     </div>
                 </div>
+                <!---------------- Expert Settings ---------------->
                 <div class="row">
-                    <p style="margin-left: 10px">Please note that at least 15 minutes are required. Default: 60 minutes.</p>
+                    <p class="translate title">Expert Settings</p>
+                    <div class="col s4 input-field">
+                        <input type="number" min="0" max="100000" class="value" id="cloudTimeout" />
+                        <label for="cloudTimeout">Cloud update get request timeout in ms</label>
+                        <span class="translate">Default: 5000</span>
+                    </div>
                 </div>
             </div>
             <!-- Content -->

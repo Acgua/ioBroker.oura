@@ -1,7 +1,7 @@
 {
   "name": "iobroker.oura",
-  "version": "0.0.1",
-  "description": "Oura Ring information",
+  "version": "0.1.0-alpha.1",
+  "description": "Oura Ring integration",
   "author": {
     "name": "Acgua",
     "email": "no@mail.com"

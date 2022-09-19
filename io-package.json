@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "oura",
-        "version": "0.0.1",
+        "version": "0.1.0-alpha.1",
         "news": {
+            "0.1.0-alpha.1": {
+                "en": "Multiple changes and improvements",
+                "de": "Diverse Änderungen und Verbesserungen",
+                "ru": "Множество изменений, улучшений и улучшений",
+                "pt": "Várias mudanças, melhorias e aprimoramentos",
+                "nl": "Meerdere veranderingen, verbetering en verbetering",
+                "fr": "Changements, améliorations et améliorations multiples",
+                "it": "Varie modifiche, miglioramenti e miglioramenti",
+                "es": "Múltiples cambios, mejoras y mejoras",
+                "pl": "Zmiany, poprawki i ulepszenia",
+                "zh-cn": "多方面的变化、改进和加强"
+            },
             "0.0.1": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
@@ -40,15 +52,8 @@
             "pl": "Integracja Oura pierścienia",
             "zh-cn": "我们的一体化"
         },
-        "authors": [
-            "Acgua <no@mail.com>"
-        ],
-        "keywords": [
-            "oura",
-            "ring",
-            "health",
-            "sleep"
-        ],
+        "authors": ["Acgua <no@mail.com>"],
+        "keywords": ["oura", "ring", "health", "sleep"],
         "license": "Apache-2.0",
         "platform": "Javascript/Node.js",
         "main": "build/main.js",
@@ -76,7 +81,8 @@
     },
     "native": {
         "token": "",
-        "updateInterval": 60
+        "updateInterval": 60,
+        "cloudTimeout": 5000
     },
     "objects": [],
     "instanceObjects": []

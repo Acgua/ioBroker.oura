@@ -34,6 +34,9 @@ Oura provides an [API](https://cloud.ouraring.com/v2/docs) to access to all the 
 ### **WORK IN PROGRESS**
 -   Some changes
 
+#### 0.1.0-alpha.1
+-   (Acgua) multiple changes, improvements and enhancements
+
 #### 0.0.1
 -   (Acgua) Initial release
 

@@ -6,6 +6,7 @@ declare global {
         interface AdapterConfig {
             token: string;
             updateInterval: number;
+            cloudTimeout: number;
         }
     }
 }

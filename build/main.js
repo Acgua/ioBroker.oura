@@ -60,6 +60,10 @@ class Oura extends utils.Adapter {
         this.log.warn(`The Cloud update interval '${String(this.config.updateInterval)}' in your adapter configuration is not valid, so default of 60 minutes is used.`);
         this.config.updateInterval = 60;
       }
+      if (!this.config.cloudTimeout || this.config.cloudTimeout < 0 || this.config.cloudTimeout > 1e5) {
+        this.log.warn(`The Cloud timeout '${String(this.config.cloudTimeout)}' in your adapter configuration is not valid, so default of 5000 ms is used.`);
+        this.config.cloudTimeout = 5e3;
+      }
       await this.setObjectNotExistsAsync("info", { type: "channel", common: { name: "Information" }, native: {} });
       await this.setObjectNotExistsAsync("info.lastCloudUpdate", { type: "state", common: { name: "Last Cloud update", type: "number", role: "date", read: true, write: false, def: 0 }, native: {} });
       await this.asyncUpdateAll();
@@ -147,12 +151,11 @@ class Oura extends utils.Adapter {
         throw `Could not get cloud data, wrong date(s) provided`;
       const url = `https://api.ouraring.com/v2/usercollection/${what}?start_date=${sDate}&end_date=${eDate}`;
       this.log.debug("Final URL: " + url);
-      const timeout = 3e3;
       try {
         const config = {
           method: "get",
           headers: { Authorization: "Bearer " + this.config.token },
-          timeout
+          timeout: this.config.cloudTimeout
         };
         const response = await import_axios.default.get(url, config);
         this.log.debug(`Response Status: ${response.status} - ${response.statusText}`);
@@ -164,7 +167,7 @@ class Oura extends utils.Adapter {
       } catch (err) {
         if (import_axios.default.isAxiosError(err)) {
           if (!(err == null ? void 0 : err.response)) {
-            this.log.error(`[Oura Cloud] Login Failed - No Server Response. Timeout: ${timeout} ms`);
+            this.log.error(`[Oura Cloud] Login Failed - No Server Response. Timeout: ${this.config.cloudTimeout} ms`);
           } else if (((_a = err.response) == null ? void 0 : _a.status) === 400) {
             this.log.error("[Oura Cloud] Login Failed - Error 400 - " + ((_b = err.response) == null ? void 0 : _b.statusText));
           } else if (((_c = err.response) == null ? void 0 : _c.status) === 401) {
