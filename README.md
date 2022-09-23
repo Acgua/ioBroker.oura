@@ -41,13 +41,12 @@ You need to get an API token from the Oura Cloud and copy the token into the ada
     ### **WORK IN PROGRESS**
 -->
 
-### **WORK IN PROGRESS**
+### 0.0.2
  -  (Acgua) Update
 
 
-#### 0.0.2
-
-* (Acgua) Initial release
+#### 0.0.1
+ -  (Acgua) Initial release
 
 ## License
 
