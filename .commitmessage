@@ -1,53 +1,8 @@
-![Logo](admin/images/oura-banner.webp)
-
-# ioBroker.oura
-
-[![NPM version](https://img.shields.io/npm/v/iobroker.oura.svg)](https://www.npmjs.com/package/iobroker.oura)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.oura.svg)](https://www.npmjs.com/package/iobroker.oura)
-![Number of Installations](https://iobroker.live/badges/oura-installed.svg)
-![Current version in stable repository](https://iobroker.live/badges/oura-stable.svg)
-[![Dependency Status](https://img.shields.io/david/Acgua/iobroker.oura.svg)](https://david-dm.org/Acgua/iobroker.oura)
-
-[![NPM](https://nodei.co/npm/iobroker.oura.png?downloads=true)](https://nodei.co/npm/iobroker.oura/)
-
-**Tests:** ![Test and Release](https://github.com/Acgua/ioBroker.oura/workflows/Test%20and%20Release/badge.svg)
-
-## Oura Ring – Adapter for ioBroker
-
-This is an adapter ("plugin") to integrate Oura rings into the smarthome system [ioBroker](https://www.iobroker.net/).
-
-## What is the Oura Ring?
-
-The Oura Ring is a gadget developed by the Finish health technology company _Ōura Health Oy_ and collects health data from the wearer's finger like a regular activity bracelet or heart rate monitor. The activity, heart rate, body temperature, respiratory rate and sleep data collected by the ring are transmitted wirelessly via Bluetooth to a smartphone app.
-
-See [ouraring.com](https://ouraring.com/) and [en.wikipedia.org/wiki/Oura_Health](https://en.wikipedia.org/wiki/Oura_Health) for further information.
-
-## Installation
-
-The adapter is not yet in the "latest repository". So please [install adapter from custom URL](https://github.com/ioBroker/ioBroker.docs/blob/master/docs/en/admin/adapter.md#5---install-adapter-from-custom-url) and add an adapter instance.
-
-## Setup
-
-You need to get an API token from the Oura Cloud and copy the token into the adapter instance settings:
-
-1. Open [cloud.ouraring.com/personal-access-tokens](https://cloud.ouraring.com/personal-access-tokens) and sign in with your Oura account.
-2. Click on "Create New Personal Access Token" to generate an access token.
-3. Copy the token and paste it into the according field of your adapter instance settings. Save the settings.
-
-## Changelog
-
-<!--
-    Placeholder for the next version (at the beginning of the line):
-    ### **WORK IN PROGRESS**
--->
-
-### **WORK IN PROGRESS**
-* (Acgua) Update
-
+chore: release v0.0.3
 
 #### 0.0.2
 
-* (Acgua) Initial release
+* Initial release
 
 ## License
 
