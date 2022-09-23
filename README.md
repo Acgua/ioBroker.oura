@@ -16,7 +16,6 @@
 
 This is an adapter ("plugin") to integrate Oura rings into the smarthome system [ioBroker](https://www.iobroker.net/).
 
-
 ## What is the Oura Ring?
 
 The Oura Ring is a gadget developed by the Finish health technology company _Ōura Health Oy_ and collects health data from the wearer's finger like a regular activity bracelet or heart rate monitor. The activity, heart rate, body temperature, respiratory rate and sleep data collected by the ring are transmitted wirelessly via Bluetooth to a smartphone app.
@@ -30,20 +29,22 @@ The adapter is not yet in the "latest repository". So please [install adapter fr
 ## Setup
 
 You need to get an API token from the Oura Cloud and copy the token into the adapter instance settings:
+
 1. Open [cloud.ouraring.com/personal-access-tokens](https://cloud.ouraring.com/personal-access-tokens) and sign in with your Oura account.
 2. Click on "Create New Personal Access Token" to generate an access token.
 3. Copy the token and paste it into the according field of your adapter instance settings. Save the settings.
-
-
 
 ## Changelog
 
 <!--
     Placeholder for the next version (at the beginning of the line):
-    ## **WORK IN PROGRESS**
+    ### **WORK IN PROGRESS**
 -->
 
+### **WORK IN PROGRESS**
+
 #### 0.0.2
+
 -   (Acgua) Initial release
 
 ## License
