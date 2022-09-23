@@ -1,21 +1,9 @@
 {
     "common": {
         "name": "oura",
-        "version": "0.1.0-alpha.1",
+        "version": "0.0.2",
         "news": {
-            "0.1.0-alpha.1": {
-                "en": "Multiple changes and improvements",
-                "de": "Diverse Änderungen und Verbesserungen",
-                "ru": "Множество изменений, улучшений и улучшений",
-                "pt": "Várias mudanças, melhorias e aprimoramentos",
-                "nl": "Meerdere veranderingen, verbetering en verbetering",
-                "fr": "Changements, améliorations et améliorations multiples",
-                "it": "Varie modifiche, miglioramenti e miglioramenti",
-                "es": "Múltiples cambios, mejoras y mejoras",
-                "pl": "Zmiany, poprawki i ulepszenia",
-                "zh-cn": "多方面的变化、改进和加强"
-            },
-            "0.0.1": {
+            "0.0.2": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
                 "ru": "Начальная версия",
@@ -82,6 +70,7 @@
     "native": {
         "token": "",
         "updateInterval": 60,
+        "numberDays": 10,
         "cloudTimeout": 5000
     },
     "objects": [],

@@ -81,7 +81,12 @@
                     <div class="col s4 input-field">
                         <input type="number" min="15" class="value" id="updateInterval" />
                         <label for="updateInterval" class="translate">Cloud update interval in minutes</label>
-                        <span class="translate">At least 15 minutes required. Default: 60</span>
+                        <span class="translate">Min: 15, default: 60</span>
+                    </div>
+                    <div class="col s4 input-field">
+                        <input type="number" min="1" max="30" class="value" id="numberDays" />
+                        <label for="numberDays" class="translate">How many days to get from Oura cloud?</label>
+                        <span class="translate">Min: 1, max: 30, default: 10</span>
                     </div>
                 </div>
                 <!---------------- Expert Settings ---------------->

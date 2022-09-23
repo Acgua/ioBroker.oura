@@ -16,13 +16,25 @@
 
 This is an adapter ("plugin") to integrate Oura rings into the smarthome system [ioBroker](https://www.iobroker.net/).
 
-### What is the Oura Ring?
+
+## What is the Oura Ring?
 
 The Oura Ring is a gadget developed by the Finish health technology company _Ōura Health Oy_ and collects health data from the wearer's finger like a regular activity bracelet or heart rate monitor. The activity, heart rate, body temperature, respiratory rate and sleep data collected by the ring are transmitted wirelessly via Bluetooth to a smartphone app.
 
 See [ouraring.com](https://ouraring.com/) and [en.wikipedia.org/wiki/Oura_Health](https://en.wikipedia.org/wiki/Oura_Health) for further information.
 
-Oura provides an [API](https://cloud.ouraring.com/v2/docs) to access to all the recorded data.
+## Installation
+
+The adapter is not yet in the "latest repository". So please [install adapter from custom URL](https://github.com/ioBroker/ioBroker.docs/blob/master/docs/en/admin/adapter.md#5---install-adapter-from-custom-url) and add an adapter instance.
+
+## Setup
+
+You need to get an API token from the Oura Cloud and copy the token into the adapter instance settings:
+1. Open [cloud.ouraring.com/personal-access-tokens](https://cloud.ouraring.com/personal-access-tokens) and sign in with your Oura account.
+2. Click on "Create New Personal Access Token" to generate an access token.
+3. Copy the token and paste it into the according field of your adapter instance settings. Save the settings.
+
+
 
 ## Changelog
 
@@ -31,13 +43,7 @@ Oura provides an [API](https://cloud.ouraring.com/v2/docs) to access to all the 
     ## **WORK IN PROGRESS**
 -->
 
-### **WORK IN PROGRESS**
--   Some changes
-
-#### 0.1.0-alpha.1
--   (Acgua) multiple changes, improvements and enhancements
-
-#### 0.0.1
+#### 0.0.2
 -   (Acgua) Initial release
 
 ## License

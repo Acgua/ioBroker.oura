@@ -42,12 +42,14 @@ class Oura extends utils.Adapter {
   constructor(options = {}) {
     super({ ...options, name: "oura" });
     this.err2Str = import_methods.err2Str.bind(this);
-    this.isEmpty = import_methods.isEmpty.bind(this);
     this.wait = import_methods.wait.bind(this);
     this.getIsoDate = import_methods.getIsoDate.bind(this);
+    this.ouraGroups = ["daily_activity", "daily_readiness", "daily_sleep", "heartrate", "session", "sleep", "tag", "workout"];
     this.on("ready", this.onReady.bind(this));
     this.on("unload", this.onUnload.bind(this));
     this.intervalCloudupdate = null;
+    this.timerMidnight = null;
+    this.cloudData = {};
   }
   async onReady() {
     try {
@@ -57,8 +59,12 @@ class Oura extends utils.Adapter {
         throw `Your Oura cloud token in your adapter configuration is not valid! [${this.config.token}]`;
       this.config.token = tkn;
       if (!this.config.updateInterval || this.config.updateInterval < 15) {
-        this.log.warn(`The Cloud update interval '${String(this.config.updateInterval)}' in your adapter configuration is not valid, so default of 60 minutes is used.`);
+        this.log.warn(`The Cloud update interval '${String(this.config.updateInterval)}' in your adapter configuration is not allowed, so default of 60 minutes is used.`);
         this.config.updateInterval = 60;
+      }
+      if (!this.config.numberDays || this.config.numberDays < 1 || this.config.numberDays > 30) {
+        this.log.warn(`'${String(this.config.numberDays)}' days in your adapter configuration is not allowed, so default of 10 days is used.`);
+        this.config.numberDays = 10;
       }
       if (!this.config.cloudTimeout || this.config.cloudTimeout < 0 || this.config.cloudTimeout > 1e5) {
         this.log.warn(`The Cloud timeout '${String(this.config.cloudTimeout)}' in your adapter configuration is not valid, so default of 5000 ms is used.`);
@@ -66,90 +72,152 @@ class Oura extends utils.Adapter {
       }
       await this.setObjectNotExistsAsync("info", { type: "channel", common: { name: "Information" }, native: {} });
       await this.setObjectNotExistsAsync("info.lastCloudUpdate", { type: "state", common: { name: "Last Cloud update", type: "number", role: "date", read: true, write: false, def: 0 }, native: {} });
-      await this.asyncUpdateAll();
+      if (await this.asyncGetAllCloudData()) {
+        await this.asyncUpdateCloudObjects();
+        await this.asyncCleanupObjects();
+      }
       this.intervalCloudupdate = setInterval(async () => {
         this.log.info(`Scheduled update of cloud information per interval of ${this.config.updateInterval} minutes.`);
-        await this.asyncUpdateAll();
+        if (await this.asyncGetAllCloudData()) {
+          await this.asyncUpdateCloudObjects();
+          await this.asyncCleanupObjects();
+        }
       }, 1e3 * 60 * this.config.updateInterval);
+      this.executeAtMidnight();
     } catch (e) {
       this.log.error(this.err2Str(e));
     }
   }
-  async asyncUpdateAll() {
+  executeAtMidnight() {
+    clearTimeout(this.timerMidnight);
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const msToMidnight = midnight.getTime() - Date.now();
+    this.timerMidnight = setTimeout(async () => {
+      await this.asyncUpdateCloudObjects();
+      await this.asyncCleanupObjects();
+      this.executeAtMidnight();
+    }, msToMidnight + 1e3);
+  }
+  async asyncGetAllCloudData() {
     try {
-      await this.setStateAsync("info.lastCloudUpdate", { val: Date.now(), ack: true });
-      const ouraTypes = ["daily_activity", "daily_readiness", "daily_sleep", "heartrate", "session", "sleep", "tag", "workout"];
-      const startDate = new Date(Date.now() - 10 * 864e5);
+      const startDate = new Date(Date.now() - this.config.numberDays * 864e5);
       const endDate = new Date(Date.now() + 864e5);
       const gotData = [];
       const noData = [];
-      for (const what of ouraTypes) {
-        const cloudAllDays = await this.asyncGetCloudData(what, startDate, endDate);
+      for (const groupId of this.ouraGroups) {
+        const cloudAllDays = await this.asyncRequestCloudData(groupId, startDate, endDate);
         if (!cloudAllDays) {
-          noData.push(what);
+          noData.push(groupId);
           continue;
         }
-        gotData.push(what);
-        await this.setObjectNotExistsAsync(what, { type: "device", common: { name: what }, native: {} });
+        gotData.push(groupId);
         for (const cloudDay of cloudAllDays) {
-          let day;
-          if (cloudDay.timestamp) {
-            day = new Date(cloudDay.timestamp);
-          } else if (cloudDay.day && typeof cloudDay.day === "string") {
-            day = new Date(cloudDay.day);
+          let isoDay;
+          if (cloudDay.day && typeof cloudDay.day === "string") {
+            isoDay = cloudDay.day;
           } else {
-            this.log.warn(`'${what}' Cloud data retrieval: No date in object, so we disregard`);
+            this.log.warn(`'${groupId}' Cloud data retrieval: No date in object, so we disregard`);
             continue;
           }
-          const dayPart = this.getWordForIsoDate(day);
-          if (!dayPart) {
-            this.log.warn(`'${what}' Cloud data retrieval: No valid timestamp or other issue with timestamp: [${cloudDay.timestamp}]`);
-            continue;
-          }
-          await this.setObjectNotExistsAsync(`${what}.${dayPart}`, { type: "channel", common: { name: dayPart + " - " + what }, native: {} });
-          await this.setObjectNotExistsAsync(`${what}.${dayPart}.json`, { type: "state", common: { name: "JSON", type: "string", role: "json", read: true, write: false }, native: {} });
-          await this.setStateChangedAsync(`${what}.${dayPart}.json`, { val: JSON.stringify(cloudDay), ack: true });
-          for (const prop in cloudDay) {
-            if (prop === "timestamp") {
-              await this.setObjectNotExistsAsync(`${what}.${dayPart}.timestamp`, { type: "state", common: { name: "Timestamp", type: "number", role: "date", read: true, write: false }, native: {} });
-              await this.setStateChangedAsync(`${what}.${dayPart}.timestamp`, { val: new Date(cloudDay.timestamp).getTime(), ack: true });
-            } else if (prop === "contributors") {
-              for (const k in cloudDay.contributors) {
-                await this.setObjectNotExistsAsync(`${what}.${dayPart}.contributors.${k}`, { type: "state", common: { name: k, type: "number", role: "info", read: true, write: false }, native: {} });
-                await this.setStateChangedAsync(`${what}.${dayPart}.contributors.${k}`, { val: cloudDay.contributors[k], ack: true });
-              }
-            } else if (typeof cloudDay[prop] === "number") {
-              await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "number", role: "info", read: true, write: false }, native: {} });
-              await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
-            } else if (typeof cloudDay[prop] === "string") {
-              await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "string", role: "info", read: true, write: false }, native: {} });
-              await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
-            } else if (typeof cloudDay[prop] === "boolean") {
-              await this.setObjectNotExistsAsync(`${what}.${dayPart}.${prop}`, { type: "state", common: { name: prop, type: "boolean", role: "info", read: true, write: false }, native: {} });
-              await this.setStateChangedAsync(`${what}.${dayPart}.${prop}`, { val: cloudDay[prop], ack: true });
-            } else if (typeof cloudDay[prop] === "object") {
-            } else {
-              this.log.error(`${what}: property '${prop}' is unknown! - value: [${cloudDay[prop]}], type: ${typeof cloudDay[prop]}`);
+          if (!this.cloudData[groupId])
+            this.cloudData[groupId] = {};
+          if (!this.cloudData[groupId][isoDay])
+            this.cloudData[groupId][isoDay] = {};
+          this.cloudData[groupId][isoDay] = cloudDay;
+        }
+      }
+      if (noData.length > 0)
+        this.log.debug(`No Oura cloud data available for: ${noData.join(", ")}`);
+      if (gotData.length > 0) {
+        if (gotData.length > 0)
+          this.log.info(`Following data received from Oura cloud: ${gotData.join(", ")}`);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      this.log.error(this.err2Str(e));
+      return false;
+    }
+  }
+  async asyncCleanupObjects() {
+    try {
+      for (const groupId of this.ouraGroups) {
+        const objDays = await this.getChannelsAsync(groupId);
+        for (const dayObj of objDays) {
+          const dayStr = dayObj._id.split(".")[dayObj._id.split(".").length - 1];
+          const iso = this.getIsoDateForWord(dayStr);
+          if (!iso)
+            throw `Invalid id: '${dayObj._id}' of group '${groupId}'`;
+          const stateObj = await this.getStatesAsync(`${groupId}.${dayStr}.*`);
+          if (stateObj[`${dayObj._id}.day`].val !== iso) {
+            const stateList = Object.keys(stateObj);
+            for (const id of stateList) {
+              await this.setStateChangedAsync(id, { val: null, ack: true });
             }
           }
         }
       }
-      if (gotData.length > 0)
-        this.log.info(`Following data received from Oura cloud: ${gotData.join(", ")}`);
-      if (noData.length > 0)
-        this.log.debug(`No Oura cloud data available for: ${noData.join(", ")}`);
+    } catch (e) {
+      this.log.error(this.err2Str(e));
+      return;
+    }
+  }
+  async asyncUpdateCloudObjects() {
+    try {
+      await this.setStateAsync("info.lastCloudUpdate", { val: Date.now(), ack: true });
+      const groupsList = Object.keys(this.cloudData);
+      for (const groupId of groupsList) {
+        await this.setObjectNotExistsAsync(groupId, { type: "device", common: { name: groupId }, native: {} });
+        const isoDaysList = Object.keys(this.cloudData[groupId]);
+        for (const isoDay of isoDaysList) {
+          const lpCloudObj = this.cloudData[groupId][isoDay];
+          const dayStr = this.getWordForIsoDate(isoDay);
+          if (!dayStr) {
+            this.log.warn(`'${groupId}' Cloud data retrieval: ISO date seems to be not valid - ${isoDay}`);
+            continue;
+          }
+          await this.setObjectNotExistsAsync(`${groupId}.${dayStr}`, { type: "channel", common: { name: dayStr + " - " + groupId }, native: {} });
+          await this.setObjectNotExistsAsync(`${groupId}.${dayStr}.json`, { type: "state", common: { name: "JSON", type: "string", role: "json", read: true, write: false }, native: {} });
+          await this.setStateChangedAsync(`${groupId}.${dayStr}.json`, { val: JSON.stringify(lpCloudObj), ack: true });
+          for (const prop in lpCloudObj) {
+            if (prop === "timestamp") {
+              await this.setObjectNotExistsAsync(`${groupId}.${dayStr}.timestamp`, { type: "state", common: { name: "Timestamp", type: "number", role: "date", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${groupId}.${dayStr}.timestamp`, { val: new Date(lpCloudObj.timestamp).getTime(), ack: true });
+            } else if (prop === "contributors") {
+              for (const k in lpCloudObj.contributors) {
+                await this.setObjectNotExistsAsync(`${groupId}.${dayStr}.contributors.${k}`, { type: "state", common: { name: k, type: "number", role: "info", read: true, write: false }, native: {} });
+                await this.setStateChangedAsync(`${groupId}.${dayStr}.contributors.${k}`, { val: lpCloudObj.contributors[k], ack: true });
+              }
+            } else if (typeof lpCloudObj[prop] === "number") {
+              await this.setObjectNotExistsAsync(`${groupId}.${dayStr}.${prop}`, { type: "state", common: { name: prop, type: "number", role: "info", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${groupId}.${dayStr}.${prop}`, { val: lpCloudObj[prop], ack: true });
+            } else if (typeof lpCloudObj[prop] === "string") {
+              await this.setObjectNotExistsAsync(`${groupId}.${dayStr}.${prop}`, { type: "state", common: { name: prop, type: "string", role: "info", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${groupId}.${dayStr}.${prop}`, { val: lpCloudObj[prop], ack: true });
+            } else if (typeof lpCloudObj[prop] === "boolean") {
+              await this.setObjectNotExistsAsync(`${groupId}.${dayStr}.${prop}`, { type: "state", common: { name: prop, type: "boolean", role: "info", read: true, write: false }, native: {} });
+              await this.setStateChangedAsync(`${groupId}.${dayStr}.${prop}`, { val: lpCloudObj[prop], ack: true });
+            } else if (typeof lpCloudObj[prop] === "object") {
+            } else {
+              this.log.error(`${groupId}: property '${prop}' is unknown! - value: [${lpCloudObj[prop]}], type: ${typeof lpCloudObj[prop]}`);
+            }
+          }
+        }
+      }
     } catch (e) {
       this.log.error(this.err2Str(e));
     }
   }
-  async asyncGetCloudData(what, startDate, endDate) {
+  async asyncRequestCloudData(groupId, startDate, endDate) {
     var _a, _b, _c, _d, _e, _f;
     try {
       const sDate = this.getIsoDate(startDate);
       const eDate = this.getIsoDate(endDate);
       if (!sDate || !eDate)
         throw `Could not get cloud data, wrong date(s) provided`;
-      const url = `https://api.ouraring.com/v2/usercollection/${what}?start_date=${sDate}&end_date=${eDate}`;
+      const url = `https://api.ouraring.com/v2/usercollection/${groupId}?start_date=${sDate}&end_date=${eDate}`;
       this.log.debug("Final URL: " + url);
       try {
         const config = {
@@ -206,10 +274,29 @@ class Oura extends utils.Adapter {
       return false;
     }
   }
-  getWordForIsoDate(date) {
+  getIsoDateForWord(word) {
     try {
-      const dateTs = date.getTime();
+      const dayNo = parseInt(word.slice(0, 2));
+      if (isNaN(dayNo) || dayNo < 0 || dayNo > 30)
+        throw `Invalid date word provided: '${word}'`;
+      const date = new Date(Date.now() - dayNo * 864e5);
+      const iso = this.getIsoDate(date);
+      if (!iso)
+        throw `Invalid date word provided: '${word}'`;
+      return iso;
+    } catch (e) {
+      this.log.error(this.err2Str(e));
+      return false;
+    }
+  }
+  getWordForIsoDate(isoDate) {
+    try {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+        throw `ISO date '${isoDate}' is not valid!`;
+      }
+      const date = new Date(isoDate);
       date.setHours(0, 0, 0, 0);
+      const dateTs = date.getTime();
       const now = new Date();
       now.setHours(0, 0, 0, 0);
       const nowTs = now.getTime();
@@ -230,6 +317,7 @@ class Oura extends utils.Adapter {
   }
   onUnload(callback) {
     try {
+      clearTimeout(this.timerMidnight);
       clearInterval(this.intervalCloudupdate);
       callback();
     } catch (e) {

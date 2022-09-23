@@ -34,26 +34,6 @@ export function err2Str(error: any): string {
 }
 
 /**
- * Checks if an operand (variable, constant, object, ...) is considered as empty.
- * - empty:     undefined; null; string|array|object, stringified and only with white space(s), and/or `><[]{}`
- * - NOT empty: not matching anything above; any function; boolean false; number -1
- * inspired by helper.js from SmartControl adapter
- */
-export function isEmpty(toCheck: any): true | false {
-    if (toCheck === null || typeof toCheck === 'undefined') return true;
-    if (typeof toCheck === 'function') return false;
-    let x = JSON.stringify(toCheck);
-    x = x.replace(/\s+/g, ''); // white space(s)
-    x = x.replace(/"+/g, ''); // "
-    x = x.replace(/'+/g, ''); // '
-    x = x.replace(/\[+/g, ''); // [
-    x = x.replace(/\]+/g, ''); // ]
-    x = x.replace(/\{+/g, ''); // {
-    x = x.replace(/\}+/g, ''); // }
-    return x === '' ? true : false;
-}
-
-/**
  * async wait/pause
  * Actually not needed since a single line, but for the sake of using wait more easily
  * @param {number} ms - number of milliseconds to wait

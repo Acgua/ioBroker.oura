@@ -19,7 +19,6 @@ var methods_exports = {};
 __export(methods_exports, {
   err2Str: () => err2Str,
   getIsoDate: () => getIsoDate,
-  isEmpty: () => isEmpty,
   wait: () => wait
 });
 module.exports = __toCommonJS(methods_exports);
@@ -52,21 +51,6 @@ function err2Str(error) {
     return JSON.stringify(error);
   }
 }
-function isEmpty(toCheck) {
-  if (toCheck === null || typeof toCheck === "undefined")
-    return true;
-  if (typeof toCheck === "function")
-    return false;
-  let x = JSON.stringify(toCheck);
-  x = x.replace(/\s+/g, "");
-  x = x.replace(/"+/g, "");
-  x = x.replace(/'+/g, "");
-  x = x.replace(/\[+/g, "");
-  x = x.replace(/\]+/g, "");
-  x = x.replace(/\{+/g, "");
-  x = x.replace(/\}+/g, "");
-  return x === "" ? true : false;
-}
 async function wait(ms) {
   try {
     await new Promise((w) => setTimeout(w, ms));
@@ -97,7 +81,6 @@ function getIsoDate(date) {
 0 && (module.exports = {
   err2Str,
   getIsoDate,
-  isEmpty,
   wait
 });
 //# sourceMappingURL=methods.js.map
